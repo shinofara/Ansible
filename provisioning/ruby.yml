@@ -1,0 +1,17 @@
+---
+- hosts: servers
+  sudo: yes
+  vars:
+    version: "ruby-2.1.2"
+    ruby_url: "http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.2.tar.gz"
+    install_path: '/usr/local/src/ruby/2.1.2'
+    src: '/usr/local/src/ruby'
+    tasks:
+      - name: yum install
+        yum: name={{ item }} state=installed
+        with_items:
+          - gcc
+          - zlib-devel
+          - openssl-devel
+          - sqlite
+          - sqlite-devel

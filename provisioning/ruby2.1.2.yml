@@ -1,0 +1,43 @@
+---
+- hosts: servers
+  sudo: yes
+  vars:
+    version: "ruby-2.1.2"
+    ruby_url: "http://cache.ruby-lang.org/pub/ruby/2.1/ruby-2.1.2.tar.gz"
+    install_path: '/usr/local/src/ruby/2.1.2'
+    src: '/usr/local/src/ruby'
+  tasks:
+    - name: yum install
+      yum: name={{ item }} state=installed
+      with_items:
+        - gcc
+        - zlib-devel
+        - openssl-devel
+        - sqlite
+        - sqlite-devel
+    - name: mkdir dir
+      file: path={{ src }} state=directory owner=root group=root mode=0755
+    - name: Ruby Download
+      get_url: url={{ ruby_url }}
+            dest={{ src }}/{{ version }}.tar.gz
+    - name: Ruby File 解凍
+      command: chdir={{ src }} tar xzf {{ version }}.tar.gz creates={{ src }}/{{ version }}
+    - name: configure
+      command: >
+              ./configure
+              --prefix={{ install_path }}
+              chdir={{ src }}/{{ version }}
+    - name: make
+      command: make chdir={{ src }}/{{ version }}
+    - name: make install
+      command: make install chdir={{ src }}/{{ version }}
+    - name: gem install rubygems-update
+      command: bash -lc "{{ install_path }}/bin/gem install rubygems-update"
+    - name: gem update --system
+      command: bash -lc "{{ install_path }}/bin/gem update --system"
+    - name: gem install bundler
+      command: bash -lc "{{ install_path }}/bin/gem install bundler"
+    - name: symlink ruby
+      file: path=/usr/local/bin/ruby src={{ install_path }}/bin/ruby state=link
+    - name: symlink gem
+      file: path=/usr/local/bin/gem src={{ install_path }}/bin/gem state=link
